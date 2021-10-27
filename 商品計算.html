@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>sample1</title>
+		<script src="https://unpkg.com/vue@2.5.17"></script>
+	</head>
+	<body>
+		<div id="app">
+			<ul>
+				<!--//購入数など-->
+				<!--li=点-->
+				<li v-for="item in items" v-bind:key="item.name">
+					<!-- input item.quantityの数-->
+					{{ item.name }}の個数:<input type="number"v-model="item.quantity" min="0">
+				</li>
+			</ul>
+			<hr>
+			<!--//1000円以上になるまでに赤くなる-->
+			<div :style="errorMessageStyle">
+				<ul>
+					<li v-for="item in items" v-bind:key="item.name">
+						{{item.name}}:{{item.price}}x{{item.quantity}}={{item.price*item.quantity|numberWithDelimiter}}円
+					</li>
+				</ul>
+				<!--//商品表示する-->
+				<!---->
+				<p>小計：{{totalPrice|numberWithDelimiter}}円</p>
+				<p>合計（税込）：{{totalPriceWithTax|numberWithDelimiter}}円</p>
+				<p v-show="!canBuy">
+					{{1000|numberWithDelimiter}}円以上からご購入いただけます。
+				</p>
+				<button v-bind:disabled="!canBuy" v-on:click="doBuy">購入</button>
+			</div>
+		</div>
+		<script>
+		console.assert(typeof Vue !=='undefined');
+		//販売リスト
+		var items=[
+			{
+				name:'鉛筆',
+				price:300,
+				quantity:0,
+			},
+			{
+				name:'ノート',
+				price:400,
+				quantity:0,
+			},
+			{
+				name:'消しゴム',
+				price:500,
+				quantity:0,
+			}]
+		var vm=new Vue({
+			el:'#app',
+			data:{
+				items:items
+			},
+			filters:{//フィルタの定義　　｜の前の数字表示する
+				numberWithDelimiter:function(value){
+					if(!value){
+						return'0'
+					}
+					return value.toString().replace(/(\d)(?=(\d{3})+$)/g,'$1,')
+				}
+			},
+			methods:{
+				doBuy:function(){
+					alert(this.totalPriceWithTax+'円のお買い上げ！')
+					this.items.forEach(function(item){
+						item.quantity=0
+					})
+				}
+			},
+			computed:{//プロパティ計算
+				totalPrice:function(){
+					return this.items.reduce(function(sum,item){
+						return sum+(item.price*item.quantity)
+					},0)
+				},
+				totalPriceWithTax:function(){
+					return Math.floor(this.totalPrice*1.08)
+				},
+				canBuy:function(){//1000円以上購入可能
+					return this.totalPrice>=1000
+				},
+				errorMessageStyle:function(){//買えない時赤色
+					return{
+						border:this.canBuy?'':'1px solid red',
+						color:this.canBuy?'':'red'
+					}
+				}
+			}
+		})
+		window.vm=vm
+		</script>
+	</body>
+</html>
